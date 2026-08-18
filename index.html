@@ -204,12 +204,26 @@ section .section-desc {
   pointer-events: none;
 }
 
+/* --- CALLOUT LINE --- */
+.callout {
+  color: var(--text);
+  font-weight: 500;
+}
+section .section-desc code {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--accent);
+  background: rgba(91, 141, 239, 0.1);
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
 /* --- ABOUT --- */
 .about-content {
-  font-size: 15px;
+  font-size: 18px;
   color: var(--text-secondary);
   line-height: 1.75;
-  max-width: 640px;
+  max-width: 680px;
 }
 
 /* --- FOOTER --- */
@@ -241,6 +255,7 @@ footer .copy {
   .hero { padding: 64px 20px 56px; }
   .hero h1 { font-size: 30px; }
   .hero .subtitle { font-size: 16px; }
+  .about-content { font-size: 16px; }
   section { padding: 0 20px 56px; }
   section h2 { font-size: 22px; }
   .tool-card-content { padding: 20px; }
@@ -275,7 +290,7 @@ footer .copy {
 
 <section id="tools">
   <h2>Entra Security Suite</h2>
-  <p class="section-desc">Each tool solves a different piece of the IAM audit problem. The orchestrator correlates findings across them. Every tool is adoptable: register an app in your own tenant, set a CLIENT_ID, and run it.</p>
+  <p class="section-desc">Each tool solves a different piece of the IAM audit problem. The orchestrator correlates findings across them. <span class="callout">Every tool is adoptable: register an app in your own tenant, set a <code>CLIENT_ID</code>, and run it.</span></p>
 
   <div class="tools-grid">
 
@@ -381,7 +396,8 @@ footer .copy {
 
 <section id="about">
   <h2>About</h2>
-  <p class="about-content">I'm Darius Frank, an IAM and cloud security practitioner based in Colorado. I build tooling that automates the audit and compliance work that IAM teams do by hand: scanning Entra ID tenants for privilege sprawl, stale credentials, policy gaps, and the indirect escalation paths that manual reviews miss. Everything here runs against live tenants via Microsoft Graph and produces reports you can hand to an auditor or a CISO.</p>
+  <p class="about-content">I'm Darius Frank, an IAM and cloud security practitioner based in Colorado. I build tooling that automates the audit and compliance work that IAM teams do by hand — scanning Entra ID tenants for privilege sprawl, stale credentials, policy gaps, and the indirect escalation paths that manual reviews miss.</p>
+  <p class="about-content" style="margin-top: 16px;"><span class="callout">Everything here runs against live tenants via Microsoft Graph and produces reports you can hand to an auditor or a CISO.</span></p>
 </section>
 
 <footer>
