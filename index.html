@@ -326,7 +326,7 @@ footer .copy {
       <div class="tool-card-content">
         <h3><a href="https://github.com/Dfrank77/entra-blast-radius">entra-blast-radius</a></h3>
         <div class="tool-tagline">Incident-response reachability analysis</div>
-        <p>Given an identity, compute everything it can reach: roles, group inheritance, PIM-eligible roles, owned apps. Rank by worst privilege. Answers "if this account is compromised, how bad is it?" Run it for one identity, or rank every identity in the tenant by blast radius. Walks Graph's <code>transitiveMemberOf</code> server-side to resolve nested groups without client-side recursion, then weights owned apps by their Graph permission grants — an app holding <code>RoleManagement.ReadWrite.Directory</code> outranks a direct Global Admin.</p>
+        <p>Given an identity, compute everything it can reach: roles, group inheritance, PIM-eligible roles, owned apps. Rank by worst privilege. Answers "if this account is compromised, how bad is it?" Run it for one identity, or rank every identity in the tenant by blast radius. Uses Graph's <code>transitiveMemberOf</code> to resolve nested groups, and checks what apps a user owns, because an app with <code>RoleManagement.ReadWrite.Directory</code> is effectively tenant takeover, even if the owner holds no admin role directly.</p>
         <div class="tech-tags">
           <span>Python</span>
           <span>Microsoft Graph</span>
@@ -343,7 +343,7 @@ footer .copy {
       <div class="tool-card-content">
         <h3><a href="https://github.com/Dfrank77/entra-orchestrator">entra-orchestrator</a></h3>
         <div class="tool-tagline">Cross-tool finding correlation</div>
-        <p>Runs the attack-path and workload scanners together, correlates their findings, and surfaces apps controlled by compromisable identities. The cross-tool risks neither scanner catches alone: an overprivileged app owned by a user who reaches admin through a nested group. Joins findings on object ID so an escalation path from the attack-path scanner and a stale-credential finding from the workload scanner surface as a single correlated risk.</p>
+        <p>Runs the attack-path and workload scanners together, correlates their findings, and surfaces apps controlled by compromisable identities. Catches the risks neither scanner sees alone, like an overprivileged app owned by a user who reaches admin through a nested group. Matches findings across tools by object ID so related issues show up as one correlated risk instead of two separate reports.</p>
         <div class="tech-tags">
           <span>Python</span>
           <span>Finding correlation</span>
@@ -359,7 +359,7 @@ footer .copy {
       <div class="tool-card-content">
         <h3><a href="https://github.com/Dfrank77/entra-attack-path-visualizer">entra-attack-path-visualizer</a></h3>
         <div class="tool-tagline">Privilege escalation path detection</div>
-        <p>Detects privilege escalation paths through direct role assignments, nested group memberships, and PIM-eligible roles. Every path is a structured finding with stable identity across scans, so re-running produces automatic diffs: what's new, what got fixed. Each finding gets a deterministic hash from its path components — same escalation route produces the same ID across runs, enabling drift detection without an external database.</p>
+        <p>Detects privilege escalation paths through direct role assignments, nested group memberships, and PIM-eligible roles. Every path is a structured finding with a stable hash, so re-running the scan shows you what's new and what got fixed. No external database needed, just compare the hashes.</p>
         <div class="tech-tags">
           <span>Python</span>
           <span>Microsoft Graph</span>
@@ -376,7 +376,7 @@ footer .copy {
       <div class="tool-card-content">
         <h3><a href="https://github.com/Dfrank77/entra-zt-policy-engine">entra-zt-policy-engine</a></h3>
         <div class="tool-tagline">Zero Trust CA policy audit and remediation</div>
-        <p>Audits Conditional Access policies against CIS M365 Foundations Benchmark and Microsoft Zero Trust guidance. Generates before/after gap reports showing what's passing, failing, and improved. Deploys remediation via Terraform in report-only mode — policies land in Conditional Access as report-only so you can validate before enforcement, with a full diff of what changed.</p>
+        <p>Audits Conditional Access policies against CIS M365 Foundations Benchmark and Microsoft Zero Trust guidance. Generates before/after gap reports showing what's passing, failing, and improved. Pushes remediation through Terraform in report-only mode so you can see what would change before anything enforces.</p>
         <div class="tech-tags">
           <span>Python</span>
           <span>Terraform</span>
@@ -393,7 +393,7 @@ footer .copy {
       <div class="tool-card-content">
         <h3><a href="https://github.com/Dfrank77/entra-workload-identity-scanner">entra-workload-identity-scanner</a></h3>
         <div class="tool-tagline">App registration and service principal audit</div>
-        <p>Audits app registrations and service principals for overprivileged permissions, expired credentials, ownerless apps, and stale workload identities. One async pass over the tenant, explainable findings with the fact that produced each one. Batches Graph calls with <code>aiohttp</code> to scan hundreds of app registrations in seconds, and tags every finding with the specific permission grant or credential state that triggered it.</p>
+        <p>Audits app registrations and service principals for overprivileged permissions, expired credentials, ownerless apps, and stale workload identities. Runs async with <code>aiohttp</code> so it scans hundreds of apps in seconds. Every finding tells you exactly why it fired: the specific permission or credential state that triggered it.</p>
         <div class="tech-tags">
           <span>Python</span>
           <span>Microsoft Graph</span>
@@ -424,7 +424,7 @@ footer .copy {
 
 <section id="about">
   <h2>About</h2>
-  <p class="about-content">I'm Darius Frank, an IAM and cloud security practitioner based in Colorado. I build tooling that automates the audit and compliance work that IAM teams do by hand — scanning Entra ID tenants for privilege sprawl, stale credentials, policy gaps, and the indirect escalation paths that manual reviews miss.</p>
+  <p class="about-content">I'm Darius Frank, an IAM and cloud security practitioner based in Colorado. I build tooling that automates the audit and compliance work that IAM teams do by hand: scanning Entra ID tenants for privilege sprawl, stale credentials, policy gaps, and the indirect escalation paths that manual reviews miss.</p>
   <p class="about-content" style="margin-top: 16px;"><span class="callout">Everything here runs against live tenants via Microsoft Graph and produces reports you can hand to an auditor or a CISO.</span></p>
   <div class="certs" style="margin-top: 24px; display: flex; gap: 10px; flex-wrap: wrap;">
     <span class="cert-tag">CompTIA Security+</span>
