@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Darius Frank | IAM & Cloud Security</title>
+<meta name="description" content="Entra ID security tooling -- scanners, audit engines, and visualizations that surface the privilege sprawl, stale workload identities, and policy gaps that manual reviews miss.">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0f1117;
+  --surface: #1a1d27;
+  --surface-hover: #222633;
+  --border: #2a2e3d;
+  --text: #e4e6ed;
+  --text-secondary: #9ca0b0;
+  --accent: #5b8def;
+  --accent-dim: #3d6ad6;
+  --critical: #e05252;
+  --high: #e8985a;
+  --medium: #d4b94e;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: "SF Mono", "Fira Code", "Fira Mono", Menlo, Consolas, monospace;
+  --max-w: 960px;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --- NAV --- */
+nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(15, 17, 23, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+}
+nav .nav-inner {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+}
+nav .logo {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text);
+  text-decoration: none;
+  letter-spacing: -0.02em;
+}
+nav .nav-links { display: flex; gap: 28px; }
+nav .nav-links a {
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+nav .nav-links a:hover { color: var(--text); }
+
+/* --- HERO --- */
+.hero {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 100px 24px 80px;
+}
+.hero h1 {
+  font-size: 42px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  margin-bottom: 20px;
+}
+.hero .subtitle {
+  font-size: 18px;
+  color: var(--text-secondary);
+  max-width: 640px;
+  line-height: 1.65;
+}
+.hero .links {
+  margin-top: 32px;
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.hero .links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--accent);
+  text-decoration: none;
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  transition: border-color 0.15s, background 0.15s;
+}
+.hero .links a:hover {
+  border-color: var(--accent-dim);
+  background: rgba(91, 141, 239, 0.06);
+}
+
+/* --- SECTIONS --- */
+section {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 0 24px 80px;
+}
+section h2 {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 12px;
+}
+section .section-desc {
+  font-size: 15px;
+  color: var(--text-secondary);
+  margin-bottom: 40px;
+  max-width: 640px;
+}
+
+/* --- TOOL CARDS --- */
+.tools-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.tool-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+.tool-card:hover { border-color: var(--accent-dim); }
+.tool-card-content {
+  padding: 28px 28px 24px;
+}
+.tool-card h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.tool-card h3 a {
+  color: var(--text);
+  text-decoration: none;
+}
+.tool-card h3 a:hover { color: var(--accent); }
+.tool-card .tool-tagline {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 14px;
+}
+.tool-card p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.65;
+}
+.tool-card .tech-tags {
+  margin-top: 16px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.tool-card .tech-tags span {
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--text-secondary);
+  background: var(--bg);
+  padding: 3px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+.tool-card .screenshot {
+  width: 100%;
+  border-top: 1px solid var(--border);
+  display: block;
+  position: relative;
+  overflow: hidden;
+}
+.tool-card .screenshot img {
+  width: 100%;
+  display: block;
+}
+.tool-card .screenshot::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  background: linear-gradient(to bottom, transparent, var(--surface));
+  pointer-events: none;
+}
+
+/* --- ABOUT --- */
+.about-content {
+  font-size: 15px;
+  color: var(--text-secondary);
+  line-height: 1.75;
+  max-width: 640px;
+}
+
+/* --- FOOTER --- */
+footer {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 40px 24px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+footer .footer-links { display: flex; gap: 24px; }
+footer a {
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+footer a:hover { color: var(--text); }
+footer .copy {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 640px) {
+  .hero { padding: 64px 20px 56px; }
+  .hero h1 { font-size: 30px; }
+  .hero .subtitle { font-size: 16px; }
+  section { padding: 0 20px 56px; }
+  section h2 { font-size: 22px; }
+  .tool-card-content { padding: 20px; }
+  nav .nav-links { gap: 18px; }
+  nav .nav-links a { font-size: 12px; }
+  footer { flex-direction: column; align-items: flex-start; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="#" class="logo">dfrank-iam.com</a>
+    <div class="nav-links">
+      <a href="#tools">Tools</a>
+      <a href="#about">About</a>
+      <a href="https://github.com/Dfrank77">GitHub</a>
+      <a href="https://www.linkedin.com/in/darius-frank/">LinkedIn</a>
+    </div>
+  </div>
+</nav>
+
+<div class="hero">
+  <h1>IAM security tooling<br>for Microsoft Entra ID</h1>
+  <p class="subtitle">Scanners, audit engines, and visualizations that surface the privilege sprawl, stale workload identities, and policy gaps that manual reviews miss. Five tools and a shared library, all scanning live tenants via Microsoft Graph.</p>
+  <div class="links">
+    <a href="https://github.com/Dfrank77">GitHub</a>
+    <a href="https://www.linkedin.com/in/darius-frank/">LinkedIn</a>
+  </div>
+</div>
+
+<section id="tools">
+  <h2>Entra Security Suite</h2>
+  <p class="section-desc">Each tool solves a different piece of the IAM audit problem. The orchestrator correlates findings across them. Every tool is adoptable: register an app in your own tenant, set a CLIENT_ID, and run it.</p>
+
+  <div class="tools-grid">
+
+    <div class="tool-card">
+      <div class="tool-card-content">
+        <h3><a href="https://github.com/Dfrank77/entra-blast-radius">entra-blast-radius</a></h3>
+        <div class="tool-tagline">Incident-response reachability analysis</div>
+        <p>Given an identity, compute everything it can reach: roles, group inheritance, PIM-eligible roles, owned apps. Rank by worst privilege. Answers "if this account is compromised, how bad is it?" Run it for one identity, or rank every identity in the tenant by blast radius.</p>
+        <div class="tech-tags">
+          <span>Python</span>
+          <span>Microsoft Graph</span>
+          <span>aiohttp</span>
+          <span>PIM</span>
+        </div>
+      </div>
+      <div class="screenshot">
+        <img src="img/blast_radius.jpeg" alt="Tenant blast radius report showing top 10 identities ranked by reachable privilege" loading="lazy">
+      </div>
+    </div>
+
+    <div class="tool-card">
+      <div class="tool-card-content">
+        <h3><a href="https://github.com/Dfrank77/entra-orchestrator">entra-orchestrator</a></h3>
+        <div class="tool-tagline">Cross-tool finding correlation</div>
+        <p>Runs the attack-path and workload scanners together, correlates their findings, and surfaces apps controlled by compromisable identities. The cross-tool risks neither scanner catches alone: an overprivileged app owned by a user who reaches admin through a nested group.</p>
+        <div class="tech-tags">
+          <span>Python</span>
+          <span>Finding correlation</span>
+          <span>HTML reports</span>
+        </div>
+      </div>
+      <div class="screenshot">
+        <img src="img/orchestrator.jpeg" alt="Orchestrator report showing apps controlled by compromisable identities with escalation paths" loading="lazy">
+      </div>
+    </div>
+
+    <div class="tool-card">
+      <div class="tool-card-content">
+        <h3><a href="https://github.com/Dfrank77/entra-attack-path-visualizer">entra-attack-path-visualizer</a></h3>
+        <div class="tool-tagline">Privilege escalation path detection</div>
+        <p>Detects privilege escalation paths through direct role assignments, nested group memberships, and PIM-eligible roles. Every path is a structured finding with stable identity across scans, so re-running produces automatic diffs: what's new, what got fixed.</p>
+        <div class="tech-tags">
+          <span>Python</span>
+          <span>Microsoft Graph</span>
+          <span>PIM</span>
+          <span>aiohttp</span>
+        </div>
+      </div>
+      <div class="screenshot">
+        <img src="img/attack_path.jpeg" alt="Privilege escalation map showing 110 findings across 98 users" loading="lazy">
+      </div>
+    </div>
+
+    <div class="tool-card">
+      <div class="tool-card-content">
+        <h3><a href="https://github.com/Dfrank77/entra-zt-policy-engine">entra-zt-policy-engine</a></h3>
+        <div class="tool-tagline">Zero Trust CA policy audit and remediation</div>
+        <p>Audits Conditional Access policies against CIS M365 Foundations Benchmark and Microsoft Zero Trust guidance. Generates before/after gap reports showing what's passing, failing, and improved. Deploys remediation via Terraform in report-only mode.</p>
+        <div class="tech-tags">
+          <span>Python</span>
+          <span>Terraform</span>
+          <span>CIS Benchmarks</span>
+          <span>Conditional Access</span>
+        </div>
+      </div>
+      <div class="screenshot">
+        <img src="img/zt_engine.jpeg" alt="Zero Trust audit before/after comparison showing policy improvements" loading="lazy">
+      </div>
+    </div>
+
+    <div class="tool-card">
+      <div class="tool-card-content">
+        <h3><a href="https://github.com/Dfrank77/entra-workload-identity-scanner">entra-workload-identity-scanner</a></h3>
+        <div class="tool-tagline">App registration and service principal audit</div>
+        <p>Audits app registrations and service principals for overprivileged permissions, expired credentials, ownerless apps, and stale workload identities. One async pass over the tenant, explainable findings with the fact that produced each one.</p>
+        <div class="tech-tags">
+          <span>Python</span>
+          <span>Microsoft Graph</span>
+          <span>OAuth2</span>
+          <span>Workload identities</span>
+        </div>
+      </div>
+      <div class="screenshot">
+        <img src="img/workload.jpeg" alt="Workload identity scan showing 403 findings across 72 apps" loading="lazy">
+      </div>
+    </div>
+
+    <div class="tool-card">
+      <div class="tool-card-content">
+        <h3><a href="https://github.com/Dfrank77/entra-security-report">entra-security-report</a></h3>
+        <div class="tool-tagline">Shared reporting library</div>
+        <p>Structured findings, persistent scan history, and diff-aware HTML reports. Used by the three scanners above. Every finding carries a stable hash so the tools can answer "what is new since last run" and "what got fixed" without external state.</p>
+        <div class="tech-tags">
+          <span>Python</span>
+          <span>Jinja2</span>
+          <span>pip-installable</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section id="about">
+  <h2>About</h2>
+  <p class="about-content">I'm Darius Frank, an IAM and cloud security practitioner based in Colorado. I build tooling that automates the audit and compliance work that IAM teams do by hand: scanning Entra ID tenants for privilege sprawl, stale credentials, policy gaps, and the indirect escalation paths that manual reviews miss. Everything here runs against live tenants via Microsoft Graph and produces reports you can hand to an auditor or a CISO.</p>
+</section>
+
+<footer>
+  <div class="footer-links">
+    <a href="https://github.com/Dfrank77">GitHub</a>
+    <a href="https://www.linkedin.com/in/darius-frank/">LinkedIn</a>
+  </div>
+  <span class="copy">Darius Frank</span>
+</footer>
+
+</body>
+</html>
