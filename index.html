@@ -286,6 +286,63 @@ footer .copy {
   nav .nav-links a { font-size: 12px; }
   footer { flex-direction: column; align-items: flex-start; }
 }
+
+/* --- RECRUITER BOX --- */
+.recruiter-box {
+  max-width: var(--max-w);
+  margin: 0 auto 80px;
+  padding: 0 24px;
+}
+.recruiter-box a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  background: linear-gradient(135deg, rgba(91, 141, 239, 0.08), rgba(91, 141, 239, 0.02));
+  border: 1px solid var(--accent-dim);
+  border-radius: 10px;
+  padding: 22px 28px;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s, background 0.15s, transform 0.15s;
+  max-width: 620px;
+}
+.recruiter-box a:hover {
+  background: linear-gradient(135deg, rgba(91, 141, 239, 0.14), rgba(91, 141, 239, 0.04));
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+.recruiter-box .rb-badge {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+  font-family: var(--mono);
+  margin-bottom: 6px;
+}
+.recruiter-box .rb-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.recruiter-box .rb-sub {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+.recruiter-box .rb-arrow {
+  font-size: 22px;
+  color: var(--accent);
+  flex-shrink: 0;
+  transition: transform 0.15s;
+}
+.recruiter-box a:hover .rb-arrow { transform: translateX(4px); }
+@media (max-width: 640px) {
+  .recruiter-box { padding: 0 20px; margin-bottom: 56px; }
+  .recruiter-box a { padding: 18px 20px; gap: 16px; }
+  .recruiter-box .rb-title { font-size: 16px; }
+}
 </style>
 </head>
 <body>
@@ -314,6 +371,17 @@ footer .copy {
     <a href="https://github.com/Dfrank77">GitHub</a>
     <a href="https://www.linkedin.com/in/darius-frank-24a895192/">LinkedIn</a>
   </div>
+</div>
+
+<div class="recruiter-box">
+  <a href="recruiters.html">
+    <div>
+      <div class="rb-badge">For recruiters</div>
+      <div class="rb-title">Start here — no technical background needed</div>
+      <div class="rb-sub">A plain-English walkthrough of what I built and why it matters for your role.</div>
+    </div>
+    <span class="rb-arrow">→</span>
+  </a>
 </div>
 
 <section id="tools">

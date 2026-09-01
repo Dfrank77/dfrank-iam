@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Darius Frank | For Recruiters</title>
+<meta name="description" content="A plain-English walkthrough of the IAM security tools I've built and why they matter — written for recruiters and non-technical readers.">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0f1117;
+  --surface: #1a1d27;
+  --surface-hover: #222633;
+  --border: #2a2e3d;
+  --text: #e4e6ed;
+  --text-secondary: #9ca0b0;
+  --accent: #5b8def;
+  --accent-dim: #3d6ad6;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: "SF Mono", "Fira Code", "Fira Mono", Menlo, Consolas, monospace;
+  --max-w: 800px;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --- NAV --- */
+nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(15, 17, 23, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+}
+nav .nav-inner {
+  max-width: 960px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+}
+nav .logo {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text);
+  text-decoration: none;
+  letter-spacing: -0.02em;
+}
+nav .nav-links { display: flex; gap: 28px; }
+nav .nav-links a {
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+nav .nav-links a:hover { color: var(--text); }
+
+/* --- PAGE HEADER --- */
+.page-header {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 60px 24px 40px;
+}
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  margin-bottom: 32px;
+  transition: color 0.15s;
+}
+.back-link:hover { color: var(--text); }
+.page-header h1 {
+  font-size: 42px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  margin-bottom: 16px;
+}
+.page-header .subtitle {
+  font-size: 17px;
+  color: var(--text-secondary);
+  max-width: 640px;
+  line-height: 1.65;
+}
+
+/* --- SECTIONS --- */
+section {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 0 24px 48px;
+}
+section h2 {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 16px;
+  margin-top: 8px;
+}
+section p {
+  font-size: 16px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin-bottom: 14px;
+}
+section p strong { color: var(--text); font-weight: 600; }
+
+/* --- TOOL CARDS (plain-English) --- */
+.tool-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 8px;
+}
+.plain-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 22px 26px;
+  transition: border-color 0.15s;
+}
+.plain-card:hover { border-color: var(--accent-dim); }
+.plain-card .card-q {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+.plain-card .card-q .num {
+  color: var(--accent);
+  font-family: var(--mono);
+  margin-right: 10px;
+}
+.plain-card .card-a {
+  font-size: 15px;
+  color: var(--text-secondary);
+  line-height: 1.65;
+  margin: 0;
+}
+
+/* --- SNAPSHOT --- */
+.snapshot {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
+.snap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px 20px;
+}
+.snap .snap-label {
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+}
+.snap .snap-value {
+  font-size: 14px;
+  color: var(--text);
+}
+
+/* --- CTA --- */
+.cta-row {
+  display: flex;
+  gap: 12px;
+  margin: 40px 0 20px;
+  flex-wrap: wrap;
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--accent);
+  text-decoration: none;
+  padding: 10px 20px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  transition: border-color 0.15s, background 0.15s;
+}
+.btn:hover {
+  border-color: var(--accent-dim);
+  background: rgba(91, 141, 239, 0.06);
+}
+.btn.primary {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+.btn.primary:hover {
+  background: var(--accent-dim);
+  border-color: var(--accent-dim);
+}
+
+/* --- FOOTER --- */
+footer {
+  max-width: 960px;
+  margin: 40px auto 0;
+  padding: 40px 24px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+footer .footer-links { display: flex; gap: 24px; }
+footer a {
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+footer a:hover { color: var(--text); }
+footer .copy {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 640px) {
+  .page-header { padding: 40px 20px 32px; }
+  .page-header h1 { font-size: 30px; }
+  .page-header .subtitle { font-size: 15px; }
+  section { padding: 0 20px 40px; }
+  section h2 { font-size: 20px; }
+  .plain-card { padding: 18px 20px; }
+  nav .nav-links { gap: 18px; }
+  nav .nav-links a { font-size: 12px; }
+  footer { flex-direction: column; align-items: flex-start; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="logo">dfrank-iam.com</a>
+    <div class="nav-links">
+      <a href="index.html#tools">Tools</a>
+      <a href="index.html#about">About</a>
+      <a href="resume.pdf">Resume</a>
+      <a href="mailto:darfra77@gmail.com">Contact</a>
+      <a href="https://github.com/Dfrank77">GitHub</a>
+      <a href="https://www.linkedin.com/in/darius-frank-24a895192/">LinkedIn</a>
+    </div>
+  </div>
+</nav>
+
+<div class="page-header">
+  <a href="index.html" class="back-link">← Back to home</a>
+  <h1>For recruiters</h1>
+  <p class="subtitle">Everything on this page is written so you don't need a technical background to understand it.</p>
+</div>
+
+<section>
+  <h2>Who I am</h2>
+  <p>I work in cybersecurity, specifically the part that controls who inside a company can access what — like who can open the CEO's email, who can approve payroll, who can delete customer data. In most companies, this is a mess. Old accounts stick around after people quit. Regular employees end up with admin powers they were never supposed to have. Nobody catches it, because catching it manually takes weeks.</p>
+  <p><strong>I build software that finds these problems automatically.</strong></p>
+</section>
+
+<section>
+  <h2>What I've been doing</h2>
+  <p>For the past year and a half I've built a set of five tools that scan a company's Microsoft environment (which is what most companies use) and flag the security problems that would take a human weeks to find. I built them on my own, tested them against a simulated company I set up for practice, and published everything publicly so anyone can see and use them.</p>
+  <p>Before that, I spent 15 months at a technology services company doing this same kind of work by hand.</p>
+</section>
+
+<section>
+  <h2>What the tools actually do, in plain language</h2>
+  <div class="tool-cards">
+
+    <div class="plain-card">
+      <div class="card-q"><span class="num">01</span>If this person's account got hacked, what could the hacker do?</div>
+      <p class="card-a">Answers that for every employee in a company. A hacker who breaks into an assistant's account might be one step away from stealing everything, and nobody realized it.</p>
+    </div>
+
+    <div class="plain-card">
+      <div class="card-q"><span class="num">02</span>Who has hidden admin powers?</div>
+      <p class="card-a">Finds employees who technically aren't admins but can act like one because of how their access was set up over time. This is one of the most common ways companies get breached.</p>
+    </div>
+
+    <div class="plain-card">
+      <div class="card-q"><span class="num">03</span>What old accounts are still active?</div>
+      <p class="card-a">Finds accounts belonging to apps and services that were set up years ago, forgotten about, and are still running with keys that could unlock the company. Like leaving spare house keys under fifty different doormats.</p>
+    </div>
+
+    <div class="plain-card">
+      <div class="card-q"><span class="num">04</span>Are our security settings actually correct?</div>
+      <p class="card-a">Companies are supposed to configure their security a specific way to meet industry standards. Most don't know if theirs are right. This tool checks and then generates the fix.</p>
+    </div>
+
+    <div class="plain-card">
+      <div class="card-q"><span class="num">05</span>Show me the problems that only appear when you look across everything.</div>
+      <p class="card-a">Runs the other tools together and finds risks that don't show up when you look at them separately.</p>
+    </div>
+
+  </div>
+</section>
+
+<section>
+  <h2>Why this matters for a job</h2>
+  <p>These are the exact same tasks I would do inside a company's security team. The tools prove I understand the problem, can build a solution, and can explain it — which is unusual for someone at my experience level. Most people at my career stage have followed tutorials. <strong>I built these from nothing.</strong></p>
+</section>
+
+<section>
+  <h2>Snapshot</h2>
+  <div class="snapshot">
+    <div class="snap">
+      <div class="snap-label">Location</div>
+      <div class="snap-value">Denver metro, Colorado</div>
+    </div>
+    <div class="snap">
+      <div class="snap-label">Work setup</div>
+      <div class="snap-value">Remote or Denver hybrid</div>
+    </div>
+    <div class="snap">
+      <div class="snap-label">Certifications</div>
+      <div class="snap-value">CompTIA Security+ · SC-300 (in progress)</div>
+    </div>
+    <div class="snap">
+      <div class="snap-label">Target roles</div>
+      <div class="snap-value">IAM Analyst, IAM Engineer, Security Analyst, IT Operations</div>
+    </div>
+  </div>
+
+  <div class="cta-row">
+    <a href="resume.pdf" class="btn primary">Download resume</a>
+    <a href="mailto:darfra77@gmail.com" class="btn">Email me</a>
+    <a href="https://www.linkedin.com/in/darius-frank-24a895192/" class="btn">LinkedIn</a>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-links">
+    <a href="resume.pdf">Resume</a>
+    <a href="mailto:darfra77@gmail.com">Contact</a>
+    <a href="https://github.com/Dfrank77">GitHub</a>
+    <a href="https://www.linkedin.com/in/darius-frank-24a895192/">LinkedIn</a>
+  </div>
+  <span class="copy">Darius Frank</span>
+</footer>
+
+</body>
+</html>
