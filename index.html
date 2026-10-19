@@ -157,6 +157,8 @@ section .section-desc {
   text-decoration: none;
 }
 .tool-card h3 a:hover { color: var(--accent); }
+.tool-card p a { color: var(--accent); text-decoration: none; }
+.tool-card p a:hover { text-decoration: underline; }
 .tool-card .tool-tagline {
   font-size: 13px;
   color: var(--text-secondary);
@@ -352,6 +354,7 @@ footer .copy {
     <a href="#" class="logo">dfrank-iam.com</a>
     <div class="nav-links">
       <a href="#tools">Tools</a>
+      <a href="#open-source">Open Source</a>
       <a href="#about">About</a>
       <a href="resume.pdf">Resume</a>
       <a href="mailto:darfra77@gmail.com">Contact</a>
@@ -383,6 +386,32 @@ footer .copy {
     <span class="rb-arrow">→</span>
   </a>
 </div>
+
+<section id="open-source">
+  <h2>Open Source Contributions</h2>
+  <p class="section-desc">Changes I've contributed to an open-source Entra security project, reviewed and merged by its maintainer.</p>
+
+  <div class="tools-grid">
+    <div class="tool-card">
+      <div class="tool-card-content">
+        <h3><a href="https://github.com/maester365/maester">Maester</a></h3>
+        <div class="tool-tagline">Open-source Microsoft Entra / M365 security testing framework &middot; Contributor, Oct. 2026</div>
+        <p><strong>Merged</strong></p>
+        <p>MT.1224: flags Microsoft-managed Conditional Access policies still in report-only before Microsoft auto-enables them (<a href="https://github.com/maester365/maester/pull/2395">#2395</a>)</p>
+        <p>MT.1210: extended to read PIM-eligible directory role assignments on AI agent users (<a href="https://github.com/maester365/maester/pull/2403">#2403</a>)</p>
+        <p style="margin-top: 12px;"><strong>In review</strong></p>
+        <p>MT.1223: adds Application.ReadUpdate.All as a high-risk agent permission, backed by a live credential-addition test (<a href="https://github.com/maester365/maester/pull/2434">#2434</a>)</p>
+        <p>MT.1206: filters agent sign-in activity server-side instead of pulling the whole tenant report (<a href="https://github.com/maester365/maester/pull/2436">#2436</a>)</p>
+        <div class="tech-tags">
+          <span>PowerShell</span>
+          <span>Pester</span>
+          <span>Microsoft Graph</span>
+          <span>Entra Agent ID</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
 <section id="tools">
   <h2>Entra Security Suite</h2>
