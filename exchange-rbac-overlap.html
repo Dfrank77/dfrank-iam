@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Exchange mailbox scope that does nothing | Darius Frank</title>
+<meta name="description" content="You can scope an app to a few mailboxes with Exchange RBAC for Applications and still have it read every mailbox in the tenant. Here is why the two grants stack, and the Maester check that catches it.">
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface-hover: #222633;
+    --border: #2a2e3d;
+    --text: #e4e6ed;
+    --text-secondary: #9ca0b0;
+    --accent: #5b8def;
+    --accent-dim: #3d6ad6;
+    --critical: #e05252;
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: "SF Mono", "Fira Code", "Fira Mono", Menlo, Consolas, monospace;
+    --max-w: 760px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    line-height: 1.65;
+    font-size: 18px;
+  }
+  .wrap { max-width: var(--max-w); margin: 0 auto; padding: 0 20px; }
+  header.site {
+    border-bottom: 1px solid var(--border);
+    padding: 18px 0;
+    font-size: 15px;
+  }
+  header.site a { color: var(--text-secondary); text-decoration: none; }
+  header.site a:hover { color: var(--accent); }
+  article { padding: 48px 0 72px; }
+  h1 {
+    font-size: 34px;
+    line-height: 1.2;
+    margin: 0 0 12px;
+    letter-spacing: -0.5px;
+  }
+  .meta { color: var(--text-secondary); font-size: 15px; margin-bottom: 36px; }
+  h2 {
+    font-size: 23px;
+    margin: 40px 0 14px;
+    letter-spacing: -0.3px;
+  }
+  p { margin: 0 0 18px; }
+  a { color: var(--accent); }
+  a:hover { color: var(--accent-dim); }
+  code {
+    font-family: var(--mono);
+    font-size: 15px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 6px;
+  }
+  blockquote {
+    margin: 22px 0;
+    padding: 2px 20px;
+    border-left: 3px solid var(--accent);
+    color: var(--text-secondary);
+    font-style: italic;
+  }
+  .callout {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px 20px;
+    margin: 28px 0;
+    font-size: 16px;
+  }
+  .callout strong { color: var(--text); }
+  footer.post {
+    border-top: 1px solid var(--border);
+    padding: 28px 0 56px;
+    color: var(--text-secondary);
+    font-size: 15px;
+  }
+  footer.post a { color: var(--accent); }
+</style>
+</head>
+<body>
+  <header class="site">
+    <div class="wrap"><a href="/">&larr; dfrank-iam.com</a></div>
+  </header>
+
+  <article>
+    <div class="wrap">
+      <h1>You scoped an app to 50 mailboxes. It can still read all of them.</h1>
+      <div class="meta">Darius Frank &middot; October 2026</div>
+
+      <p>Exchange Online has a feature called RBAC for Applications. You grant an app a permission like Mail.Read, then limit it to a set of mailboxes. On paper it is clean least privilege: the app only touches the mailboxes you named.</p>
+
+      <p>The catch is that the Exchange grant does not replace the Mail.Read the app already holds as a tenant-wide Graph application permission in Entra. The two grants add together. Microsoft's own docs say the union results in <q>no effective resource scoping</q>. The scope you set in Exchange does nothing. The app reads every mailbox in the tenant.</p>
+
+      <h2>I ran it to confirm</h2>
+
+      <p>I tested this in my own tenant. I created an app, granted it Mail.Read tenant-wide in Entra, then added a scoped Application Mail.Read assignment in Exchange limited to two test mailboxes. The app could still read mail outside that scope. I removed the Entra grant, and only then did the Exchange scope actually bound it.</p>
+
+      <p>This is easy to miss because both grants look correct on their own. The Exchange side shows a tidy, scoped assignment. The Entra side shows a normal application permission. Nobody reviewing either one in isolation sees a problem. You have to look at both at once to catch that one cancels the other.</p>
+
+      <h2>So I wrote a check for it</h2>
+
+      <p>The check reads an app's Exchange RBAC assignments, maps each Exchange role to the Graph permission it corresponds to using Microsoft's documented table, and flags any app that holds the same permission, or a broader one, as a tenant-wide Graph grant. A broader grant counts too: Mail.ReadWrite tenant-wide swallows a scoped Mail.Read. If an Application Access Policy restricts the app, the check lists it for review instead of failing it, because that policy can still bound the access.</p>
+
+      <div class="callout">
+        <p style="margin:0;">The check is <strong>MT.1252</strong> in <a href="https://maester.dev">Maester</a>, the open-source Entra and M365 security test framework. If you run Maester against your tenant, it tells you which apps are in this state. The pull request is <a href="https://github.com/maester365/maester/pull/2506">maester365/maester #2506</a>.</p>
+      </div>
+
+      <h2>The fix is not in Exchange</h2>
+
+      <p>Tightening the Exchange scope does nothing while the tenant-wide Graph grant is still there. You remove or narrow the Entra grant, then let the Exchange scope do its job.</p>
+
+      <p>If you have apps with mailbox access, this is worth ten minutes. Check whether the thing you scoped in Exchange is also sitting there unscoped in Entra.</p>
+    </div>
+  </article>
+
+  <footer class="post">
+    <div class="wrap">
+      Darius Frank builds Entra ID security tooling. More at <a href="/">dfrank-iam.com</a> and <a href="https://github.com/Dfrank77">github.com/Dfrank77</a>.
+    </div>
+  </footer>
+</body>
+</html>
