@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>An AI agent can self-activate a privileged Entra role | Darius Frank</title>
+<meta name="description" content="An agent user in Entra can self-activate a PIM-eligible privileged role with no human and no MFA. PIM reports it as Provisioned. Then the role does nothing. Tested live, tied to Maester check MT.1210.">
+<meta property="og:title" content="An AI agent can self-activate a privileged Entra role. No human, no MFA.">
+<meta property="og:description" content="An agent user in Entra can self-activate a PIM-eligible privileged role with no human and no MFA. PIM reports it as a success. Tested live in my own tenant.">
+<meta property="og:type" content="article">
+<style>
+:root {
+  --bg: #0d1117;
+  --surface: #161b22;
+  --border: #30363d;
+  --text: #e6edf3;
+  --muted: #8b949e;
+  --accent: #58a6ff;
+  --accent-dim: #1f6feb;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  line-height: 1.65;
+  font-size: 18px;
+  padding: 0 20px;
+}
+article {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 64px 0 96px;
+}
+h1 {
+  font-size: 2rem;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 16px;
+}
+.byline {
+  color: var(--muted);
+  font-size: 0.95rem;
+  margin-bottom: 40px;
+}
+h2 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin: 40px 0 14px;
+  letter-spacing: -0.01em;
+}
+p { margin-bottom: 20px; }
+code {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 1px 6px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.88em;
+}
+.callout {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent-dim);
+  border-radius: 6px;
+  padding: 18px 22px;
+  margin: 28px 0;
+}
+.callout .label {
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 8px;
+}
+.callout p { margin-bottom: 0; font-size: 0.95rem; }
+.callout a { color: var(--accent); }
+footer {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 28px 0 60px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+footer a { color: var(--accent); text-decoration: none; }
+footer a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<article>
+  <h1>An AI agent can self-activate a privileged Entra role. No human, no MFA.</h1>
+  <p class="byline">Darius Frank · November 2026</p>
+
+  <p>Entra Agent ID gives AI agents real identities. One kind, the agent user, is built on the user object and gets a token that says <code>idtyp=user</code>, so to most of Microsoft 365 it looks like a person.</p>
+
+  <p>Microsoft says agent users can't hold privileged admin roles. Semperis showed that in practice you can still assign three of them: Global Reader, Security Reader, AI Administrator. That was a standing grant. I wanted to know if an agent user could turn on an eligible one by itself.</p>
+
+  <p>Eligible is the PIM model. You don't hold the role, you activate it when you need it, and activation is where the guardrails sit: justification, MFA, approval. For a person that's the safe setting. An agent can't do MFA and has no human driving it, so the question was whether it can finish that activation at all.</p>
+
+  <h2>I ran it in my own tenant</h2>
+
+  <p>I made a test agent user eligible for Global Reader. Its activation policy was on the Entra default, which asks for a justification string and nothing else. MFA and approval are off by default. I gave the agent user the one scope PIM needs to activate a role, minted the agent user's token through the blueprint flow, and had the agent call <code>selfActivate</code> on Global Reader with its own token.</p>
+
+  <p>It came back <code>Provisioned</code>. No human, no MFA. The agent turned on a privileged role for itself, and the role shows up in the token afterward. By every signal PIM reports, it worked.</p>
+
+  <h2>Why that matters for auditing agents</h2>
+
+  <p>An audit that only reads active role assignments calls this agent user clean. The eligible role lives at a different endpoint, and the agent can switch it on any time. If you let agent users hold eligible privileged roles, reading active assignments is not enough.</p>
+
+  <div class="callout">
+    <span class="label">Maester check · MT.1210</span>
+    <p>This is the gap behind a check I added to Maester, the open-source Entra and M365 security test framework. MT.1210 reads eligible role assignments on agent users, not just active ones, so an agent user that is one activation away from a privileged role is flagged. Merged into <a href="https://github.com/maester365/maester">maester365/maester</a>.</p>
+  </div>
+
+  <h2>Then I checked if the role actually did anything</h2>
+
+  <p>I stripped the agent user's access back to only the scope needed to activate, so nothing on the token could read directory data on its own. Role off: the agent tried to list users and was denied, as expected. The agent activated Global Reader. Role on, with Global Reader confirmed in the token: the same read was still denied.</p>
+
+  <p>So the activation is real in PIM and inert for the agent-user token. Entra accepts it, writes the role into the token, reports success, and the role grants no working access. The reads that earlier looked like the role working were the token's own scope doing it.</p>
+
+  <h2>What to do about it</h2>
+
+  <p>Check eligible assignments on your agent users, not just active ones. PIM will report a self-activation as <code>Provisioned</code> whether or not the role ends up usable. And the one control that stops the self-activation is one an agent can't meet: require MFA or a Conditional Access authentication context on activation. An agent user can't satisfy either, so that requirement blocks it cleanly.</p>
+
+  <p>One thing to be clear about: inert is how it behaves today. That's Microsoft's current implementation, not a promise. An eligible privileged role sitting on an agent is a standing grant, and the day the token behavior changes it resolves to real access. You want to see it in an audit now, not after.</p>
+
+  <p>The inert part I can't fully explain. An activation that succeeds everywhere PIM reports but delivers no access looks like a gap on Microsoft's side. If anyone's dug into why, I'd be interested to hear it.</p>
+</article>
+<footer>
+  Darius Frank · <a href="https://dfrank-iam.com">dfrank-iam.com</a> · <a href="https://github.com/Dfrank77">GitHub</a> · <a href="https://www.linkedin.com/in/darius-frank-24a895192/">LinkedIn</a>
+</footer>
+</body>
+</html>
