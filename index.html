@@ -355,6 +355,7 @@ footer .copy {
     <div class="nav-links">
       <a href="#tools">Tools</a>
       <a href="#open-source">Open Source</a>
+      <a href="#writing">Writing</a>
       <a href="#about">About</a>
       <a href="resume.pdf">Resume</a>
       <a href="mailto:darfra77@gmail.com">Contact</a>
@@ -395,8 +396,8 @@ footer .copy {
     <div class="tool-card">
       <div class="tool-card-content">
         <h3><a href="https://github.com/maester365/maester">Maester</a></h3>
-        <div class="tool-tagline">Open-source Microsoft Entra / M365 security testing framework &middot; Contributor, Oct. 2026</div>
-          <p><strong>Merged (6)</strong></p>
+        <div class="tool-tagline">Open-source Microsoft Entra / M365 security testing framework &middot; Contributor, Oct. 2026 &ndash; Present</div>
+          <p><strong>Merged (7)</strong></p>
           <p>MT.1224: flags Microsoft-managed Conditional Access policies still in report-only before Microsoft auto-enables them (<a href="https://github.com/maester365/maester/pull/2395">#2395</a>)</p>
         
           <p>MT.1210: extended to read PIM-eligible directory role assignments on AI agent users (<a href="https://github.com/maester365/maester/pull/2403">#2403</a>)</p>
@@ -407,7 +408,14 @@ footer .copy {
         
           <p>MT.1022/MT.1023: results now show the license gap and the risk-based Conditional Access policies behind it (<a href="https://github.com/maester365/maester/pull/2496">#2496</a>)</p>
         
-          <p>MT.1252: new test that flags apps scoped with Exchange RBAC for Applications that also hold the same or a broader permission tenant-wide (<a href="https://github.com/maester365/maester/pull/2506">#2506</a>, <a href="exchange-rbac-overlap.html">write-up</a>)</p>
+          <p>MT.1252: new test that flags apps scoped with Exchange RBAC for Applications that also hold the same or a broader permission tenant-wide (<a href="https://github.com/maester365/maester/pull/2506">#2506</a>, <a href="exchange-rbac-overlap.html">write-up</a>, featured in Entra.News #173)</p>
+        
+          <p>MT.1260: flags high-risk users left unremediated in Entra ID Protection, with severity raised when the user holds a privileged role; the first completed item from the maintainer's risk-signals epic (<a href="https://github.com/maester365/maester/pull/2609">#2609</a>)</p>
+          <p style="margin-top: 14px;"><strong>In review (4)</strong></p>
+          <p>MT.1261: medium-risk users left unremediated (<a href="https://github.com/maester365/maester/pull/2688">#2688</a>)</p>
+          <p>MT.1262: high-risk service principals left unremediated (<a href="https://github.com/maester365/maester/pull/2689">#2689</a>)</p>
+          <p>MT.1264: one result per Microsoft Secure Score improvement action (<a href="https://github.com/maester365/maester/pull/2672">#2672</a>)</p>
+          <p>Monthly automation that keeps the agent high-risk permission check in sync with Microsoft's blocked-for-agents list (<a href="https://github.com/maester365/maester/pull/2637">#2637</a>)</p>
         <div class="tech-tags">
           <span>PowerShell</span>
           <span>Pester</span>
@@ -525,9 +533,28 @@ footer .copy {
   </div>
 </section>
 
+<section id="writing">
+  <h2>Writing</h2>
+  <p class="section-desc">Research I've tested live in my own tenant and written up.</p>
+  <div class="tools-grid">
+    <div class="tool-card">
+      <div class="tool-card-content">
+        <h3><a href="agent-self-activation.html">An AI agent can self-activate a privileged Entra role. No human, no MFA.</a></h3>
+        <div class="tool-tagline">Entra Agent ID &middot; PIM &middot; Nov. 2026</div>
+      </div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-card-content">
+        <h3><a href="exchange-rbac-overlap.html">You scoped an app to 50 mailboxes. It can still read all of them.</a></h3>
+        <div class="tool-tagline">Featured in Entra.News #173 &middot; Oct. 2026</div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section id="about">
   <h2>About</h2>
-  <p class="about-content">I'm Darius Frank, based in Colorado, and I work in IAM and cloud security. I built these tools on my own to show what I can do with the audit and compliance work that IAM teams do by hand: scanning Entra ID tenants for privilege sprawl, stale credentials, policy gaps, and the escalation paths that manual reviews miss.</p>
+  <p class="about-content">I'm Darius Frank, based in Colorado. I've worked in IT and security since 2023, including 15 months as an Information Security Specialist at an IT services company. Since Feb. 2025 I've built these tools myself to show what I can do with the audit and compliance work that IAM teams do by hand: scanning Entra ID tenants for privilege sprawl, stale credentials, policy gaps, and the escalation paths that manual reviews miss.</p>
   <p class="about-content" style="margin-top: 16px;">Each tool runs against a test tenant I seeded with Terraform to simulate realistic scale. <span class="callout">Everything is designed to work against any live tenant via Microsoft Graph and produce reports you can hand to an auditor or a CISO.</span></p>
   <div class="certs" style="margin-top: 24px; display: flex; gap: 10px; flex-wrap: wrap;">
     <span class="cert-tag">CompTIA Security+</span>
