@@ -98,13 +98,13 @@ footer a:hover { text-decoration: underline; }
 
   <p>Entra Agent ID gives AI agents real identities. One kind, the agent user, is built on the user object and gets a token that says <code>idtyp=user</code>, so to most of Microsoft 365 it looks like a person.</p>
 
-  <p>Microsoft says agent users can't hold privileged admin roles. Semperis showed that in practice you can still assign three of them: Global Reader, Security Reader, AI Administrator. That was a standing grant. I wanted to know if an agent user could turn on an eligible one by itself.</p>
+  <p>Microsoft says agent users can't hold privileged admin roles, yet its own list of roles allowed for agents includes Global Reader. Semperis assigned three such roles to agent users: Global Reader, Security Reader, AI Administrator. I wanted to know if an agent user could turn on an eligible one by itself.</p>
 
   <p>Eligible is the PIM model. You don't hold the role, you activate it when you need it, and activation is where the guardrails sit: justification, MFA, approval. For a person that's the safe setting. An agent can't do MFA and has no human driving it, so the question was whether it can finish that activation at all.</p>
 
   <h2>I ran it in my own tenant</h2>
 
-  <p>I made a test agent user eligible for Global Reader. Its activation policy was on the Entra default, which asks for a justification string and nothing else. MFA and approval are off by default. I gave the agent user the one scope PIM needs to activate a role, minted the agent user's token through the blueprint flow, and had the agent call <code>selfActivate</code> on Global Reader with its own token.</p>
+  <p>I made a test agent user eligible for Global Reader. Its activation policy was the one the tenant shipped with, never modified: it asked for a justification string and nothing else, no MFA and no approval. I gave the agent user the one scope PIM needs to activate a role, minted the agent user's token through the blueprint flow, and had the agent call <code>selfActivate</code> on Global Reader with its own token.</p>
 
   <p>It came back <code>Provisioned</code>. No human, no MFA. The agent turned on a privileged role for itself, and the role shows up in the token afterward. By every signal PIM reports, it worked.</p>
 
@@ -125,7 +125,7 @@ footer a:hover { text-decoration: underline; }
 
   <h2>What to do about it</h2>
 
-  <p>Check eligible assignments on your agent users, not just active ones. PIM will report a self-activation as <code>Provisioned</code> whether or not the role ends up usable. And the one control that stops the self-activation is one an agent can't meet: require MFA or a Conditional Access authentication context on activation. An agent user can't satisfy either, so that requirement blocks it cleanly.</p>
+  <p>Check eligible assignments on your agent users, not just active ones. PIM will report a self-activation as <code>Provisioned</code> whether or not the role ends up usable. And the control that would stop the self-activation is one an agent can't meet: require MFA or a Conditional Access authentication context on activation. An agent user has no way to complete MFA, so that requirement should block it. I verified the default policy and the self-activation itself, not the MFA-required case.</p>
 
   <p>One thing to be clear about: inert is how it behaves today. That's Microsoft's current implementation, not a promise. An eligible privileged role sitting on an agent is a standing grant, and the day the token behavior changes it resolves to real access. You want to see it in an audit now, not after.</p>
 
