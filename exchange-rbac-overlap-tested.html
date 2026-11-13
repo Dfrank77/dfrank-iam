@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>You scoped an app to one mailbox. It read, sent, and wrote to all of them. | Darius Frank</title>
+<meta name="description" content="A follow-up to the Exchange RBAC overlap post: I tested every claim live in my own tenant, with a control on each one, and found a case where even an Application Access Policy fails to contain the app.">
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface-hover: #222633;
+    --border: #2a2e3d;
+    --text: #e4e6ed;
+    --text-secondary: #9ca0b0;
+    --accent: #5b8def;
+    --accent-dim: #3d6ad6;
+    --critical: #e05252;
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: "SF Mono", "Fira Code", "Fira Mono", Menlo, Consolas, monospace;
+    --max-w: 760px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    line-height: 1.65;
+    font-size: 18px;
+  }
+  .wrap { max-width: var(--max-w); margin: 0 auto; padding: 0 20px; }
+  header.site {
+    border-bottom: 1px solid var(--border);
+    padding: 18px 0;
+    font-size: 15px;
+  }
+  header.site a { color: var(--text-secondary); text-decoration: none; }
+  header.site a:hover { color: var(--accent); }
+  article { padding: 48px 0 72px; }
+  h1 {
+    font-size: 34px;
+    line-height: 1.2;
+    margin: 0 0 12px;
+    letter-spacing: -0.5px;
+  }
+  .meta { color: var(--text-secondary); font-size: 15px; margin-bottom: 36px; }
+  h2 {
+    font-size: 23px;
+    margin: 40px 0 14px;
+    letter-spacing: -0.3px;
+  }
+  p { margin: 0 0 18px; }
+  a { color: var(--accent); }
+  a:hover { color: var(--accent-dim); }
+  code {
+    font-family: var(--mono);
+    font-size: 15px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 6px;
+  }
+  blockquote {
+    margin: 22px 0;
+    padding: 2px 20px;
+    border-left: 3px solid var(--accent);
+    color: var(--text-secondary);
+    font-style: italic;
+  }
+  .callout {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px 20px;
+    margin: 28px 0;
+    font-size: 16px;
+  }
+  .callout strong { color: var(--text); }
+  figure { margin: 24px 0 28px; }
+  figure img {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    display: block;
+  }
+  figcaption {
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin-top: 8px;
+  }
+  footer.post {
+    border-top: 1px solid var(--border);
+    padding: 28px 0 56px;
+    color: var(--text-secondary);
+    font-size: 15px;
+  }
+  footer.post a { color: var(--accent); }
+</style>
+</head>
+<body>
+  <header class="site">
+    <div class="wrap"><a href="/">&larr; dfrank-iam.com</a></div>
+  </header>
+
+  <article>
+    <div class="wrap">
+      <h1>You scoped an app to one mailbox. It read, sent, and wrote to all of them.</h1>
+      <div class="meta">Darius Frank &middot; November 2026</div>
+
+      <p>A few weeks ago I <a href="exchange-rbac-overlap.html">wrote</a> that an Exchange RBAC scope does nothing when the app still holds the same permission tenant-wide in Entra. That post kept getting read, so I went back and tested every claim end to end in my own tenant, with a control on each one. It holds, and it goes further than the first post said.</p>
+
+      <h2>The app reads outside its scope</h2>
+
+      <p>I scoped an app to one mailbox with Application Mail.Read in Exchange and left it Mail.Read tenant-wide in Entra. Microsoft's own checker, <code>Test-ServicePrincipalAuthorization</code>, reports the other mailbox as out of scope, InScope False. The app read it anyway and pulled the subject line. My control was the in-scope mailbox: it came back True and read fine.</p>
+
+      <figure>
+        <img src="img/rbac-overlap-read-out-of-scope.png" alt="Test-ServicePrincipalAuthorization reports the target mailbox InScope False, and the app-only Graph read of that mailbox still succeeds, alongside the in-scope control read.">
+        <figcaption>The checker calls the target out of scope (InScope False). The app reads it anyway. The in-scope mailbox is the control.</figcaption>
+      </figure>
+
+      <h2>It sends as other people</h2>
+
+      <p>Same overlap with Mail.Send. The app sent mail as a mailbox it was scoped away from. The message landed in the target's inbox, from the out-of-scope user.</p>
+
+      <figure>
+        <img src="img/rbac-overlap-send-as.png" alt="Outlook showing a delivered message sent from the out-of-scope mailbox to the admin inbox.">
+        <figcaption>The message arrives, sent as the mailbox the app was scoped away from.</figcaption>
+      </figure>
+
+      <h2>A read grant you can write through</h2>
+
+      <p>One app got a scoped Application Mail.Read in Exchange and Mail.ReadWrite tenant-wide in Entra. The broader Entra grant swallows the narrow one. The app read the out-of-scope mailbox and then wrote a draft into it. A grant that looks read-only on the Exchange side is read and write across the whole tenant.</p>
+
+      <figure>
+        <img src="img/rbac-overlap-readwrite.png" alt="The app reads the out-of-scope mailbox and then creates a draft in it, returning a new message id.">
+        <figcaption>Read out of scope, then a draft written into the same out-of-scope mailbox.</figcaption>
+      </figure>
+
+      <h2>Two limits that cancel out</h2>
+
+      <p>An RBAC scope that allows every mailbox except admin. An Application Access Policy that allows only admin. Each looks tight alone. Together they cover everyone, because everything except admin plus only admin is everyone. Microsoft documents this as <q>A and Not A</q> means everything. I reproduced it live and the app read both mailboxes.</p>
+
+      <figure>
+        <img src="img/rbac-overlap-aap.png" alt="The RBAC checker and the Application Access Policy each deny one mailbox, yet the app reads both mailboxes.">
+        <figcaption>RBAC allows everyone but admin; the Access Policy allows only admin. The app reads both.</figcaption>
+      </figure>
+
+      <h2>What to do</h2>
+
+      <p>Remove or narrow the tenant-wide Entra grant so the Exchange scope can actually bound the app. Do not rely on an Application Access Policy to contain an app that also has an RBAC scope.</p>
+
+      <div class="callout">
+        <p style="margin:0;">The check is <strong>MT.1252</strong> in <a href="https://maester.dev">Maester</a>, which flags apps holding the same or a broader permission both in Exchange RBAC and tenant-wide in Entra. The pull request is <a href="https://github.com/maester365/maester/pull/2506">maester365/maester #2506</a>.</p>
+      </div>
+    </div>
+  </article>
+
+  <footer class="post">
+    <div class="wrap">
+      Darius Frank builds Entra ID security tooling. More at <a href="/">dfrank-iam.com</a> and <a href="https://github.com/Dfrank77">github.com/Dfrank77</a>.
+    </div>
+  </footer>
+</body>
+</html>
