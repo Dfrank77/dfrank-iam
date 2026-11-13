@@ -96,6 +96,10 @@
       <h1>You scoped an app to 50 mailboxes. It can still read all of them.</h1>
       <div class="meta">Darius Frank &middot; October 2026</div>
 
+      <div class="callout">
+        <p style="margin:0;"><strong>Update, November 2026:</strong> I went back and tested every claim in this post live in my own tenant, with a control on each one and a screenshot of each result, and found a case where even an Application Access Policy fails to contain the app. <a href="exchange-rbac-overlap-tested.html">Read the follow-up &rarr;</a></p>
+      </div>
+
       <p>Exchange Online has a feature called RBAC for Applications. You grant an app a permission like Mail.Read, then limit it to a set of mailboxes. On paper it is clean least privilege: the app only touches the mailboxes you named.</p>
 
       <p>The catch is that the Exchange grant does not replace the Mail.Read the app already holds as a tenant-wide Graph application permission in Entra. The two grants add together. Microsoft's own docs say the union results in <q>no effective resource scoping</q>. The scope you set in Exchange does nothing. The app reads every mailbox in the tenant.</p>
