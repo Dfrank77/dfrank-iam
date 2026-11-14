@@ -89,6 +89,17 @@
     font-size: 14px;
     margin-top: 8px;
   }
+  pre.out {
+    font-family: var(--mono);
+    font-size: 14px;
+    line-height: 1.5;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 18px;
+    overflow-x: auto;
+    margin: 0;
+  }
   footer.post {
     border-top: 1px solid var(--border);
     padding: 28px 0 56px;
@@ -144,6 +155,25 @@
       <figure>
         <img src="img/rbac-overlap-aap.png" alt="The RBAC checker and the Application Access Policy each deny one mailbox, yet the app reads both mailboxes.">
         <figcaption>RBAC allows everyone but admin; the Access Policy allows only admin. The app reads both.</figcaption>
+      </figure>
+
+      <h2>Removing the Entra grant fixes it</h2>
+
+      <p>I hadn't tested the fix, so I did. Fresh app, same setup: Application Mail.Read in Exchange scoped to one mailbox, Mail.Read tenant-wide in Entra. First I confirmed it still read both mailboxes. Then I removed only the Entra grant and left the Exchange scope alone. Microsoft says an idle app's permission cache resets after 30 minutes, so I made no calls as the app for over 30 minutes. The in-scope read still worked. The out-of-scope read came back Forbidden.</p>
+
+      <figure>
+<pre class="out">Before: Entra Mail.Read tenant-wide + Exchange Mail.Read scoped to one mailbox
+  Checker   in-scope: InScope True    out-of-scope: InScope False
+  AUTH: AppOnly
+  CONTROL  in-scope read      : SUCCESS
+  BEFORE   out-of-scope read  : SUCCESS
+
+After: Entra grant removed, Exchange scope unchanged, app idle 30+ minutes
+  Checker   in-scope: InScope True    out-of-scope: InScope False
+  AUTH: AppOnly
+  CONTROL  in-scope read      : SUCCESS
+  AFTER    out-of-scope read  : DENIED   Forbidden (Forbidden)</pre>
+        <figcaption>Same app, before and after removing only the Entra grant. The scope starts working once the Entra grant is gone. Condensed from the script output.</figcaption>
       </figure>
 
       <h2>What to do</h2>
