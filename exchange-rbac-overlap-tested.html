@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>You scoped an app to one mailbox. It read, sent, and wrote to all of them. | Darius Frank</title>
+<title>You scoped an app to one mailbox. It read, sent, and wrote outside that scope. | Darius Frank</title>
 <meta name="description" content="A follow-up to the Exchange RBAC overlap post: I tested every claim live in my own tenant, with a control on each one, and found a case where even an Application Access Policy fails to contain the app.">
 <style>
   :root {
@@ -105,7 +105,7 @@
 
   <article>
     <div class="wrap">
-      <h1>You scoped an app to one mailbox. It read, sent, and wrote to all of them.</h1>
+      <h1>You scoped an app to one mailbox. It read, sent, and wrote outside that scope.</h1>
       <div class="meta">Darius Frank &middot; November 2026</div>
 
       <p>A few weeks ago I <a href="exchange-rbac-overlap.html">wrote</a> that an Exchange RBAC scope does nothing when the app still holds the same permission tenant-wide in Entra. That post kept getting read, so I went back and tested every claim end to end in my own tenant, with a control on each one. It holds, and it goes further than the first post said.</p>
@@ -119,7 +119,7 @@
         <figcaption>The checker calls the target out of scope (InScope False). The app reads it anyway. The in-scope mailbox is the control.</figcaption>
       </figure>
 
-      <h2>It sends as other people</h2>
+      <h2>It sends as a mailbox outside its scope</h2>
 
       <p>Same overlap with Mail.Send. The app sent mail as a mailbox it was scoped away from. The message landed in the target's inbox, from the out-of-scope user.</p>
 
@@ -130,7 +130,7 @@
 
       <h2>A read grant you can write through</h2>
 
-      <p>One app got a scoped Application Mail.Read in Exchange and Mail.ReadWrite tenant-wide in Entra. The broader Entra grant swallows the narrow one. The app read the out-of-scope mailbox and then wrote a draft into it. A grant that looks read-only on the Exchange side is read and write across the whole tenant.</p>
+      <p>One app got a scoped Application Mail.Read in Exchange and Mail.ReadWrite tenant-wide in Entra. The broader Entra grant swallows the narrow one. The app read the out-of-scope mailbox and then wrote a draft into it. A grant that looks read-only on the Exchange side is read and write on a mailbox it was scoped away from.</p>
 
       <figure>
         <img src="img/rbac-overlap-readwrite.png" alt="The app reads the out-of-scope mailbox and then creates a draft in it, returning a new message id.">
@@ -148,7 +148,7 @@
 
       <h2>What to do</h2>
 
-      <p>Remove or narrow the tenant-wide Entra grant so the Exchange scope can actually bound the app. Do not rely on an Application Access Policy to contain an app that also has an RBAC scope.</p>
+      <p>Remove the tenant-wide Entra grant for any permission you scoped in Exchange, so the Exchange scope can actually bound the app. Do not rely on an Application Access Policy to contain an app that also has an RBAC scope.</p>
 
       <div class="callout">
         <p style="margin:0;">The check is <strong>MT.1252</strong> in <a href="https://maester.dev">Maester</a>, which flags apps holding the same or a broader permission both in Exchange RBAC and tenant-wide in Entra. The pull request is <a href="https://github.com/maester365/maester/pull/2506">maester365/maester #2506</a>.</p>
