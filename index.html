@@ -60,14 +60,57 @@ nav .logo {
   text-decoration: none;
   letter-spacing: -0.02em;
 }
-nav .nav-links { display: flex; gap: 28px; }
-nav .nav-links a {
-  font-size: 13px;
-  color: var(--text-secondary);
+nav .nav-links { display: flex; align-items: center; gap: 6px; }
+nav .nav-links > a, nav .drop-btn {
+  font-family: var(--font);
+  font-size: 14.5px;
+  font-weight: 500;
+  color: var(--text);
   text-decoration: none;
-  transition: color 0.15s;
+  background: none;
+  border: 0;
+  padding: 7px 11px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
 }
-nav .nav-links a:hover { color: var(--text); }
+nav .nav-links > a:hover, nav .drop-btn:hover, nav .dropdown.open .drop-btn {
+  color: #fff;
+  background: var(--surface-hover);
+}
+nav .caret { font-size: 10px; margin-left: 2px; color: var(--accent); }
+nav .dropdown { position: relative; }
+nav .drop-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 250px;
+  max-width: 340px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.45);
+  z-index: 200;
+}
+nav .dropdown::after { content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 8px; }
+nav .dropdown.open .drop-menu { display: block; }
+@media (hover: hover) { nav .dropdown:hover .drop-menu { display: block; } }
+nav .drop-menu a {
+  display: block;
+  padding: 9px 12px;
+  font-size: 14px;
+  line-height: 1.35;
+  color: var(--text);
+  text-decoration: none;
+  border-radius: 6px;
+}
+nav .drop-menu a:hover { background: var(--surface-hover); color: var(--accent); }
+nav .drop-menu a.drop-all { color: var(--accent); font-weight: 600; border-bottom: 1px solid var(--border); border-radius: 6px 6px 0 0; margin-bottom: 4px; }
+.anchor-alias { position: relative; top: -70px; display: block; height: 0; }
+.tool-card[id] { scroll-margin-top: 72px; }
+section[id] { scroll-margin-top: 64px; }
 
 /* --- HERO --- */
 .hero {
@@ -284,8 +327,11 @@ footer .copy {
   section { padding: 0 20px 56px; }
   section h2 { font-size: 22px; }
   .tool-card-content { padding: 20px; }
-  nav .nav-links { gap: 18px; }
-  nav .nav-links a { font-size: 12px; }
+  nav .nav-inner { height: auto; padding: 10px 0; flex-wrap: wrap; gap: 6px; }
+  nav .nav-links { flex-wrap: wrap; gap: 2px; }
+  nav .nav-links > a, nav .drop-btn { font-size: 14px; padding: 6px 8px; }
+  nav .drop-menu { min-width: 220px; }
+  .tool-card[id], section[id] { scroll-margin-top: 140px; }
   footer { flex-direction: column; align-items: flex-start; }
 }
 
@@ -353,9 +399,28 @@ footer .copy {
   <div class="nav-inner">
     <a href="#" class="logo">dfrank-iam.com</a>
     <div class="nav-links">
-      <a href="#tools">Tools</a>
+      <div class="dropdown">
+        <button class="drop-btn" aria-haspopup="true" aria-expanded="false">Tools <span class="caret">&#9662;</span></button>
+        <div class="drop-menu">
+          <a href="#tools" class="drop-all">All tools</a>
+          <a href="#entra-blast-radius">entra-blast-radius</a>
+          <a href="#entra-orchestrator">entra-orchestrator</a>
+          <a href="#entra-attack-path-visualizer">entra-attack-path-visualizer</a>
+          <a href="#entra-zt-policy-engine">entra-zt-policy-engine</a>
+          <a href="#entra-workload-identity-scanner">entra-workload-identity-scanner</a>
+          <a href="#entra-security-report">entra-security-report</a>
+        </div>
+      </div>
       <a href="#open-source">Open Source</a>
-      <a href="#writing">Writing</a>
+      <div class="dropdown">
+        <button class="drop-btn" aria-haspopup="true" aria-expanded="false">Articles <span class="caret">&#9662;</span></button>
+        <div class="drop-menu">
+          <a href="#articles" class="drop-all">All articles</a>
+          <a href="exchange-rbac-overlap.html">You scoped an app to 50 mailboxes. It can still read all of them.</a>
+          <a href="agent-self-activation.html">An AI agent can self-activate a privileged Entra role.</a>
+          <a href="exchange-rbac-overlap-tested.html">You scoped an app to one mailbox. It read, sent, and wrote outside that scope.</a>
+        </div>
+      </div>
       <a href="#about">About</a>
       <a href="resume.pdf">Resume</a>
       <a href="mailto:darfra77@gmail.com">Contact</a>
@@ -435,7 +500,7 @@ footer .copy {
 
   <div class="tools-grid">
 
-    <div class="tool-card">
+    <div class="tool-card" id="entra-blast-radius">
       <div class="tool-card-content">
         <h3><a href="https://github.com/Dfrank77/entra-blast-radius">entra-blast-radius</a></h3>
         <div class="tool-tagline">Incident-response reachability analysis</div>
@@ -452,7 +517,7 @@ footer .copy {
       </div>
     </div>
 
-    <div class="tool-card">
+    <div class="tool-card" id="entra-orchestrator">
       <div class="tool-card-content">
         <h3><a href="https://github.com/Dfrank77/entra-orchestrator">entra-orchestrator</a></h3>
         <div class="tool-tagline">Cross-tool finding correlation</div>
@@ -468,7 +533,7 @@ footer .copy {
       </div>
     </div>
 
-    <div class="tool-card">
+    <div class="tool-card" id="entra-attack-path-visualizer">
       <div class="tool-card-content">
         <h3><a href="https://github.com/Dfrank77/entra-attack-path-visualizer">entra-attack-path-visualizer</a></h3>
         <div class="tool-tagline">Privilege escalation path detection</div>
@@ -485,7 +550,7 @@ footer .copy {
       </div>
     </div>
 
-    <div class="tool-card">
+    <div class="tool-card" id="entra-zt-policy-engine">
       <div class="tool-card-content">
         <h3><a href="https://github.com/Dfrank77/entra-zt-policy-engine">entra-zt-policy-engine</a></h3>
         <div class="tool-tagline">Zero Trust CA policy audit and remediation</div>
@@ -502,7 +567,7 @@ footer .copy {
       </div>
     </div>
 
-    <div class="tool-card">
+    <div class="tool-card" id="entra-workload-identity-scanner">
       <div class="tool-card-content">
         <h3><a href="https://github.com/Dfrank77/entra-workload-identity-scanner">entra-workload-identity-scanner</a></h3>
         <div class="tool-tagline">App registration and service principal audit</div>
@@ -519,7 +584,7 @@ footer .copy {
       </div>
     </div>
 
-    <div class="tool-card">
+    <div class="tool-card" id="entra-security-report">
       <div class="tool-card-content">
         <h3><a href="https://github.com/Dfrank77/entra-security-report">entra-security-report</a></h3>
         <div class="tool-tagline">Shared reporting library</div>
@@ -535,8 +600,9 @@ footer .copy {
   </div>
 </section>
 
-<section id="writing">
-  <h2>Writing</h2>
+<section id="articles">
+  <span id="writing" class="anchor-alias"></span>
+  <h2>Articles</h2>
   <p class="section-desc">Research I've tested live in my own tenant and written up.</p>
   <div class="tools-grid">
     <div class="tool-card">
@@ -580,5 +646,18 @@ footer .copy {
   <span class="copy">Darius Frank</span>
 </footer>
 
+<script>
+(function(){
+  var dds=document.querySelectorAll('nav .dropdown');
+  function closeAll(except){dds.forEach(function(d){if(d!==except){d.classList.remove('open');d.querySelector('.drop-btn').setAttribute('aria-expanded','false');}});}
+  dds.forEach(function(d){
+    var b=d.querySelector('.drop-btn');
+    b.addEventListener('click',function(e){e.stopPropagation();var o=!d.classList.contains('open');closeAll(d);d.classList.toggle('open',o);b.setAttribute('aria-expanded',o?'true':'false');});
+    d.querySelectorAll('.drop-menu a').forEach(function(a){a.addEventListener('click',function(){closeAll();});});
+  });
+  document.addEventListener('click',function(){closeAll();});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')closeAll();});
+})();
+</script>
 </body>
 </html>
