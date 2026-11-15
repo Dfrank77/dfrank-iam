@@ -1,9 +1,9 @@
-// Serves the site normally, and saves every page view to Workers KV.
-// Nothing is thrown away: each view is labeled so real readers can be told apart from the rest.
+// Serves the site normally, and saves page views to Workers KV.
+// Bots are not saved at all. Every other view is saved and labeled so real readers stand out.
 //   visitor          a real browser that engaged with the page (stayed visible 3s, or scrolled, clicked, tapped, typed)
 //   no-engagement    looked like a browser on a normal network, but never engaged (mostly disguised crawlers)
 //   hosting-network  looked like a browser on a VPN, relay, cloud or big-company network, and never engaged
-//   bot              crawlers, link previews, scripts, anything that doesn't look like a browser
+//   (bot)            crawlers, link previews, scripts, anything that doesn't look like a browser: served, never saved
 //
 // How "visitor" gets earned: every page gets a tiny script added on the way out. When the reader
 // engages, the script sends this view's key back to /__engaged, and the entry is relabeled "visitor".
@@ -115,9 +115,11 @@ export default {
     const isPage = request.method === "GET" && response.status === 200 && type.includes("text/html");
     if (!isPage || !env.VISITS) return response;
 
+    const kind = classify(request);
+    if (kind === "bot") return response; // bots get the page but are not saved
+
     const cf = request.cf || {};
     const now = new Date();
-    const kind = classify(request);
     const visit = {
       time: now.toISOString(),
       kind,
@@ -132,8 +134,6 @@ export default {
     // Readable key, e.g. "2026-10-17 11:25 MT | visitor | Phoenix, Arizona, US | Comcast Cable | / | 1a2b3c4d"
     const key = buildKey(now, kind, visit, crypto.randomUUID().slice(0, 8));
     ctx.waitUntil(env.VISITS.put(key, JSON.stringify(visit), { expirationTtl: KEEP_FOR }));
-
-    if (kind === "bot") return response;
 
     // Pages with a key in them must never be cached, or two loads would share one key.
     const page = new Response(response.body, response);
