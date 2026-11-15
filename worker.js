@@ -1,9 +1,13 @@
-// Serves the site normally, and saves each real page visit to Workers KV.
-// Filters out bots, scrapers, and traffic from hosting networks.
+// Serves the site normally, and saves every page view to Workers KV.
+// Nothing is thrown away: each view is labeled so real readers can be told apart from the rest.
+//   visitor          a normal browser on a normal network (home, mobile, office)
+//   hosting-network  a normal browser on a VPN, relay, cloud desktop or big-company network
+//   bot              crawlers, link previews, scripts, anything that doesn't look like a browser
 
 const BOTS = /bot|crawl|spider|slurp|preview|facebookexternalhit|curl|wget|python|headless|monitor|scan|check|http-client|axios|fetch\//i;
 
-const HOSTING = /(amazon|google llc|microsoft|oracle|digitalocean|linode|ovh|hetzner|m247|vultr|contabo|choopa|datacamp|leaseweb|psychz|cogent|hurricane electric|internap|rackspace|packet|equinix|servercentral|colocrossing|1337 services|custodian|collyer quay|techoff|fine group|sundance international|techties|code200|tzulo|palo alto networks|tor|private internet|nord|surfshark|mullvad|cyberghost|datacenter|hosting|server|cloud|vps)/i;
+// Whole words only, so "tor" no longer matches names like "Victoria".
+const HOSTING = /\b(amazon|google llc|google cloud|microsoft|oracle|digitalocean|linode|ovh|hetzner|m247|vultr|contabo|choopa|datacamp|leaseweb|psychz|cogent|hurricane electric|internap|rackspace|packet|equinix|servercentral|colocrossing|1337 services|custodian|collyer quay|techoff|fine group|sundance international|techties|code200|tzulo|palo alto networks|tor|private internet|nord|surfshark|mullvad|cyberghost|cloudflare|akamai|fastly|datacenter|data center|hosting|server|servers|cloud|vps)\b/i;
 
 // "2026-10-17 11:25" in Denver time, so keys sort by time and read at a glance.
 function denverTime(date) {
@@ -17,33 +21,41 @@ function denverTime(date) {
   return `${parts.year}-${parts.month}-${parts.day} ${parts.hour}:${parts.minute}`;
 }
 
+function classify(request) {
+  const ua = request.headers.get("user-agent") || "";
+  const org = (request.cf || {}).asOrganization || "";
+  const looksLikeBrowser = /mozilla.*(chrome|safari|firefox|edg)/i.test(ua) && !BOTS.test(ua);
+  const hasBrowserHeaders = Boolean(request.headers.get("accept-language") && request.headers.get("sec-fetch-site"));
+  if (!looksLikeBrowser || !hasBrowserHeaders) return "bot";
+  if (HOSTING.test(org)) return "hosting-network";
+  return "visitor";
+}
+
 export default {
   async fetch(request, env, ctx) {
     const response = await env.ASSETS.fetch(request);
     const type = response.headers.get("content-type") || "";
-    const ua = request.headers.get("user-agent") || "";
-    const cf = request.cf || {};
-    const org = cf.asOrganization || "";
-
     const isPage = request.method === "GET" && type.includes("text/html");
-    const looksLikeBrowser = /mozilla.*(chrome|safari|firefox|edg)/i.test(ua) && !BOTS.test(ua);
-    const hasBrowserHeaders = request.headers.get("accept-language") && request.headers.get("sec-fetch-site");
-    const notHosting = !HOSTING.test(org);
 
-    if (isPage && looksLikeBrowser && hasBrowserHeaders && notHosting && env.VISITS) {
+    if (isPage && env.VISITS) {
+      const cf = request.cf || {};
       const now = new Date();
+      const kind = classify(request);
       const visit = {
         time: now.toISOString(),
+        kind,
         page: new URL(request.url).pathname,
         city: cf.city || "unknown",
         region: cf.region || "unknown",
         country: cf.country || "unknown",
-        org: org || "unknown",
+        org: cf.asOrganization || "unknown",
         referrer: request.headers.get("referer") || "direct",
+        userAgent: (request.headers.get("user-agent") || "none").slice(0, 300),
       };
-      // Readable key, e.g. "2026-10-17 11:25 MT | Phoenix, Arizona, US | Comcast Cable | / | 1a2b3c4d"
+      // Readable key, e.g. "2026-10-17 11:25 MT | visitor | Phoenix, Arizona, US | Comcast Cable | / | 1a2b3c4d"
       const key = [
         `${denverTime(now)} MT`,
+        kind,
         `${visit.city}, ${visit.region}, ${visit.country}`,
         visit.org,
         visit.page,
