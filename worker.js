@@ -74,17 +74,28 @@ function engagementScript(key) {
 
 // Relabel one saved view as "visitor". The key itself is the proof: it has a random
 // ending and only the browser that loaded that page ever saw it.
+// Each step is logged to Workers Logs ("[engaged] ...") so a lost or skipped upgrade can be traced.
 async function markEngaged(key, env) {
-  const saved = key && (await env.VISITS.get(key));
-  if (!saved) return; // unknown key, or KV hasn't caught up yet: leave it as it was
-  const visit = JSON.parse(saved);
-  if (visit.kind !== "no-engagement" && visit.kind !== "hosting-network") return; // bots and repeats stay put
+  try {
+    console.log("[engaged] received", key);
+    const saved = key && (await env.VISITS.get(key));
+    if (!saved) { console.log("[engaged] not found, left as is", key); return; } // unknown key, or KV hasn't caught up yet
+    const visit = JSON.parse(saved);
+    if (visit.kind !== "no-engagement" && visit.kind !== "hosting-network") { // bots and repeats stay put
+      console.log("[engaged] skipped, already", visit.kind, key);
+      return;
+    }
 
-  const network = visit.kind === "hosting-network" ? "hosting" : "normal";
-  const updated = { ...visit, kind: "visitor", network, engagedAt: new Date().toISOString() };
-  const newKey = buildKey(new Date(visit.time), "visitor", visit, key.split(" | ").pop());
-  await env.VISITS.put(newKey, JSON.stringify(updated), { expirationTtl: KEEP_FOR });
-  await env.VISITS.delete(key);
+    const network = visit.kind === "hosting-network" ? "hosting" : "normal";
+    const updated = { ...visit, kind: "visitor", network, engagedAt: new Date().toISOString() };
+    const newKey = buildKey(new Date(visit.time), "visitor", visit, key.split(" | ").pop());
+    await env.VISITS.put(newKey, JSON.stringify(updated), { expirationTtl: KEEP_FOR });
+    console.log("[engaged] wrote", newKey);
+    await env.VISITS.delete(key);
+    console.log("[engaged] deleted old", key);
+  } catch (err) {
+    console.log("[engaged] error", String(err), key);
+  }
 }
 
 export default {
@@ -133,7 +144,11 @@ export default {
     };
     // Readable key, e.g. "2026-10-17 11:25 MT | visitor | Phoenix, Arizona, US | Comcast Cable | / | 1a2b3c4d"
     const key = buildKey(now, kind, visit, crypto.randomUUID().slice(0, 8));
-    ctx.waitUntil(env.VISITS.put(key, JSON.stringify(visit), { expirationTtl: KEEP_FOR }));
+    ctx.waitUntil(
+      env.VISITS.put(key, JSON.stringify(visit), { expirationTtl: KEEP_FOR })
+        .then(() => console.log("[saved]", key))
+        .catch((err) => console.log("[save error]", String(err), key))
+    );
 
     // Pages with a key in them must never be cached, or two loads would share one key.
     const page = new Response(response.body, response);
